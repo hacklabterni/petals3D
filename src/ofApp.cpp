@@ -4,14 +4,15 @@
 void ofApp::setup(){
 
     ofSetVerticalSync(true);
-    ofSetFrameRate(60);
+    ofSetFrameRate(30);
     ofBackground(0,0,0);
-    ofEnableAlphaBlending();
+
+    ofEnableNormalizedTexCoords();
 
     width = ofGetWindowWidth();
     height = ofGetWindowHeight();
 
-    for (int i = 0; i < 100; i++){
+    for (int i = 0; i < 120; i++){
         Particle myParticle;
         myParticle.setInitCondition(ofRandom(0, width), ofRandom(0, height), ofRandom(-height / 2, height / 2), 0, 0, 0);
         myParticle.damping = ofRandom(0.2,0.3);
@@ -26,6 +27,28 @@ void ofApp::setup(){
     pointLight2.setPosition(0, -1000, 1000);
     pointLight3.setPosition(0, 1000, -1000);
     pointLight4.setPosition(0, -1000, -1000);
+
+    imgtex.loadImage("petal.png");
+    imgtex.setImageType(OF_IMAGE_COLOR_ALPHA);
+    imgtex.reloadTexture();
+
+    // first triangle
+    quad.addVertex(ofVec3f(0, 0, 0));
+    quad.addVertex(ofVec3f(1, 0, 0));
+    quad.addVertex(ofVec3f(1, 1, 0));
+    // second triangle
+    quad.addVertex(ofVec3f(1, 1, 0));
+    quad.addVertex(ofVec3f(0, 1, 0));
+    quad.addVertex(ofVec3f(0, 0, 0));
+    // first triangle
+    quad.addTexCoord(ofVec2f(0, 0));
+    quad.addTexCoord(ofVec2f(1, 0));
+    quad.addTexCoord(ofVec2f(1, 1));
+    // second triangle
+    quad.addTexCoord(ofVec2f(1, 1));
+    quad.addTexCoord(ofVec2f(0, 1));
+    quad.addTexCoord(ofVec2f(0, 0));
+
 }
 
 //--------------------------------------------------------------
@@ -35,20 +58,29 @@ void ofApp::update(){
 
     for (int i = 0; i < particles.size(); i++){
 
-        float fx = 0.2 - 0.4 * ofNoise(time * 1.0 + i * 104.3 + 14.6);
-        //float fy = 0.1;
-        float fy = 0.2 * ofNoise(time * 1.0 + i * 53.3 + 35.2);
-        float fz = 0.2 - 0.4 * ofNoise(time * 1.0 + i * 104.3 + 14.6);
+        float fx = 4.2 - 8.0 * ofNoise(time * 1.0 + i * 104.3 + 14.6);
+        //float fy = 0.2;
+        float fy = 0.2 + 0.2 * ofNoise(time * 1.0 + i * 53.3 + 35.2);
+        float fz = 4.0 - 8.0 * ofNoise(time * 1.0 + i * 104.3 + 14.6);
 
-        //float fx = 0.2 - 0.4 * ofNoise(particles[i].pos.x / width, particles[i].pos.y /height, time * 2.0 + i * 104.3 + 14.6);
-        //float fy = 0.2 * ofNoise(particles[i].pos.x / width, particles[i].pos.y /height, time * 2.0 + i * 53.3 + 35.2);
+        //float fx = 0.2 - 0.4 * ofNoise(particles[i].pos.x / width, particles[i].pos.y /height, time * 1.0 + i * 104.3 + 14.6);
+        //float fy = 0.2 * ofNoise(particles[i].pos.x / width, particles[i].pos.y /height, time * 1.0 + i * 53.3 + 35.2);
 
         //float fx = 0.2 - 0.4 * ofNoise(particles[i].pos.x / width, particles[i].pos.y /height, time);
         //float fy = 0.2 * ofNoise(particles[i].pos.x / width, particles[i].pos.y /height, time);
 
         particles[i].setForce(fx, fy, fz);
-        //particles[i].addAttraction(mouseX, mouseY, 1000, 0.05);
-        //particles[i].addRepulsion(mouseX, mouseY, 30, 35);
+
+        float rx = 90.0 - 180.0 * ofNoise(time * 1.0 + i * 104.3 + 14.6);
+        float ry = 0.0;
+        float rz = 90.0 - 180.0 * ofNoise(time * 1.0 + i * 53.3 + 35.2);
+
+        //float rx = 360.0 * ofNoise(time * 1.0 + i * 104.3 + 14.6);
+        //float ry = 0.0;
+        //float rz = 0.0;
+
+        particles[i].setRotation(rx, ry, rz);
+
         particles[i].addDamping();
         particles[i].update();
 
@@ -58,7 +90,14 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 
-    ofEnableDepthTest();
+    ofEnableAlphaBlending();
+    //ofEnableDepthTest();
+
+    glEnable(GL_ALPHA);
+    glEnable(GL_DEPTH_TEST);
+    glAlphaFunc(GL_GREATER, 0.5);
+    glEnable(GL_ALPHA_TEST);
+
     ofEnableLighting();
     pointLight.enable();
     pointLight2.enable();
@@ -66,13 +105,16 @@ void ofApp::draw(){
     pointLight4.enable();
 
     for (int i = 0; i < particles.size(); i++){
-
-        //ofRotate(360.0 * ofNoise(i * 53.3 + 35.2), 1, 0, 0);
-        particles[i].draw(360.0 * ofNoise(time * 1.0 + i * 104.3 + 14.6));
+        particles[i].draw(quad, imgtex);
     }
 
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_ALPHA);
+
     ofDisableLighting();
-    ofDisableDepthTest();
+
+    //ofDisableDepthTest();
+    ofDisableAlphaBlending();
 
 }
 
