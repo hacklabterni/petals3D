@@ -28,6 +28,8 @@ class ofApp : public ofBaseApp{
     ofLight pointLight2;
     ofLight pointLight3;
     ofLight pointLight4;
+    ofImage imgtex;
+    ofMesh quad;
 
     vector<Particle> particles;
 
